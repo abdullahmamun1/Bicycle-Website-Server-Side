@@ -18,7 +18,15 @@ console.log(uri);
 async function run() {
     try {
         await client.connect();
-        console.log('db connected');
+        const database = client.db("productDB");
+        const productCollection = database.collection("products");
+
+        app.get('/products', async (req, res) => {
+            const cursor = productCollection.find({})
+            const products = await cursor.toArray();
+            res.json(products)
+
+        })
 
 
     } finally {
