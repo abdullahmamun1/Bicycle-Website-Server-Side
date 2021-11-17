@@ -19,6 +19,7 @@ async function run() {
         await client.connect();
         const database = client.db("productDB");
         const productCollection = database.collection("products");
+        const orderCollection = database.collection("orders");
 
         //GET ALL PRODUCTS
         app.get('/products', async (req, res) => {
@@ -37,6 +38,20 @@ async function run() {
 
         })
 
+        //GET ALL ORDERS
+        app.get('/orders', async (req, res) => {
+            const cursor = orderCollection.find({})
+            const orders = await cursor.toArray();
+            res.json(orders)
+        })
+
+        //POST ORDERS
+        app.post('/orders', async (req, res) => {
+            const order = req.body
+            const result = await orderCollection.insertOne(order);
+            res.json(result)
+        })
+
 
     } finally {
         //   await client.close();
@@ -52,3 +67,5 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log('port', port)
 })
+
+
