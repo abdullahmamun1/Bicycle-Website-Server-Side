@@ -20,6 +20,7 @@ async function run() {
         const database = client.db("productDB");
         const productCollection = database.collection("products");
         const orderCollection = database.collection("orders");
+        const reviewCollection = database.collection("reviews");
 
         //GET ALL PRODUCTS
         app.get('/products', async (req, res) => {
@@ -44,6 +45,15 @@ async function run() {
             const orders = await cursor.toArray();
             res.json(orders)
         })
+        app.get('/reviews', async (req, res) => {
+            const cursor = reviewCollection.find({})
+            const reviews = await cursor.toArray();
+            res.json(reviews)
+        })
+
+
+
+
 
         //POST ORDERS
         app.post('/orders', async (req, res) => {
@@ -52,6 +62,19 @@ async function run() {
             res.json(result)
         })
 
+        app.post('/reviews', async (req, res) => {
+            const review = req.body
+            const result = await reviewCollection.insertOne(review);
+            res.json(result)
+        })
+
+        app.delete('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(query);
+            console.log(result);
+            res.json(result)
+        })
 
     } finally {
         //   await client.close();
