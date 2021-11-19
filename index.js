@@ -7,9 +7,6 @@ require('dotenv').config()
 const port = process.env.PORT || 5000
 
 
-
-
-
 //middleware
 app.use(cors())
 app.use(express.json())
@@ -27,6 +24,9 @@ async function run() {
         const orderCollection = database.collection("orders");
         const reviewCollection = database.collection("reviews");
         const userCollection = database.collection("users");
+
+
+        //GET API
 
         //GET ALL PRODUCTS
         app.get('/products', async (req, res) => {
@@ -51,24 +51,30 @@ async function run() {
             const orders = await cursor.toArray();
             res.json(orders)
         })
+
+        //GET SINGLE ORDER
         app.get('/orders/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const order = await orderCollection.findOne(query);
             res.json(order)
         })
+
+        //GET ALL REVIEWS
         app.get('/reviews', async (req, res) => {
             const cursor = reviewCollection.find({})
             const reviews = await cursor.toArray();
             res.json(reviews)
         })
 
-
+        //GET ALL USERS
         app.get('/users', async (req, res) => {
             const cursor = userCollection.find({})
             const users = await cursor.toArray();
             res.json(users)
         })
+
+        //GET USERS BY EMAIL
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email
             const query = { email: email }
@@ -82,6 +88,14 @@ async function run() {
 
 
 
+        //POST API
+
+        //POST PRODUCTS
+        app.post('/products', async (req, res) => {
+            const product = req.body
+            const result = await productCollection.insertOne(product);
+            res.json(result)
+        })
 
         //POST ORDERS
         app.post('/orders', async (req, res) => {
@@ -90,12 +104,14 @@ async function run() {
             res.json(result)
         })
 
+        //POST REVIEWS
         app.post('/reviews', async (req, res) => {
             const review = req.body
             const result = await reviewCollection.insertOne(review);
             res.json(result)
         })
 
+        //POST USERS
         app.post('/users', async (req, res) => {
             const user = req.body
             const result = await userCollection.insertOne(user);
@@ -105,6 +121,8 @@ async function run() {
 
 
 
+        //UPDATE API
+        //UPDATE ORDERS
         app.put('/orders/:id', async (req, res) => {
             const id = req.params.id;
             console.log(req.body);
@@ -119,6 +137,8 @@ async function run() {
             res.json(result)
         })
 
+
+        //UPDATE ADMIN
         app.put('/users/admin', async (req, res) => {
             const user = req.body;
             const filter = { email: user.email }
@@ -129,11 +149,22 @@ async function run() {
         })
 
 
+
+        //DELETE API
+
+        //DELETE PRODUCTS
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productCollection.deleteOne(query);
+            res.json(result)
+        })
+
+        //DELETE ORDERS
         app.delete('/orders/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await orderCollection.deleteOne(query);
-            console.log(result);
             res.json(result)
         })
 
