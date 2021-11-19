@@ -6,6 +6,10 @@ const cors = require('cors')
 require('dotenv').config()
 const port = process.env.PORT || 5000
 
+
+
+
+
 //middleware
 app.use(cors())
 app.use(express.json())
@@ -14,6 +18,7 @@ app.use(express.json())
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hqjve.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
+
 async function run() {
     try {
         await client.connect();
@@ -21,6 +26,7 @@ async function run() {
         const productCollection = database.collection("products");
         const orderCollection = database.collection("orders");
         const reviewCollection = database.collection("reviews");
+        const userCollection = database.collection("users");
 
         //GET ALL PRODUCTS
         app.get('/products', async (req, res) => {
@@ -45,12 +51,34 @@ async function run() {
             const orders = await cursor.toArray();
             res.json(orders)
         })
+        app.get('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const order = await orderCollection.findOne(query);
+            res.json(order)
+        })
         app.get('/reviews', async (req, res) => {
             const cursor = reviewCollection.find({})
             const reviews = await cursor.toArray();
             res.json(reviews)
         })
 
+
+        app.get('/users', async (req, res) => {
+            const cursor = userCollection.find({})
+            const users = await cursor.toArray();
+            res.json(users)
+        })
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const user = await userCollection.findOne(query)
+            let isAdmin = false
+            if (user?.role === 'admin') {
+                isAdmin = true
+            }
+            res.json({ admin: isAdmin })
+        })
 
 
 
@@ -67,6 +95,39 @@ async function run() {
             const result = await reviewCollection.insertOne(review);
             res.json(result)
         })
+
+        app.post('/users', async (req, res) => {
+            const user = req.body
+            const result = await userCollection.insertOne(user);
+            res.json(result)
+        })
+
+
+
+
+        app.put('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(req.body);
+            const options = { upsert: true };
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status: "Shipped"
+                },
+            };
+            const result = await orderCollection.updateOne(filter, updateDoc, options)
+            res.json(result)
+        })
+
+        app.put('/users/admin', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email }
+            const updateDoc = { $set: { role: 'admin' } }
+            const result = await userCollection.updateOne(filter, updateDoc)
+            res.json(result)
+
+        })
+
 
         app.delete('/orders/:id', async (req, res) => {
             const id = req.params.id;
